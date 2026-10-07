@@ -1,0 +1,134 @@
+{
+  "corner": "bakery",
+  "title_ja": "お菓子作り（カップケーキ）",
+  "english": "en-US",
+  "characters": [
+    { "id": "mimi", "animal": "cat", "name": "Mimi" },
+    { "id": "bebe", "animal": "bunny", "name": "Bebe" },
+    { "id": "popo", "animal": "panda", "name": "Popo" }
+  ],
+  "vocabulary": {
+    "step1": {
+      "ingredients": ["eggs", "milk", "sugar"],
+      "colors": ["pink", "purple", "blue", "yellow", "green", "white"],
+      "toppings": ["hearts", "stars", "strawberries", "sprinkles"],
+      "numbers": ["one", "two", "three", "four", "five"],
+      "actions": ["put in", "stir", "bake", "count"],
+      "feelings": ["yummy", "pretty", "beautiful"]
+    },
+    "step2_add": {
+      "ingredients": ["chocolate"],
+      "colors": ["red", "orange"],
+      "toppings": ["candles"],
+      "numbers": ["six", "seven", "eight", "nine", "ten"]
+    },
+    "step3_add": ["because", "why", "how many", "what did you put on it"]
+  },
+  "praise": ["Great job!", "Yay!", "You did it!", "So pretty!", "Awesome!", "Good job!"],
+  "retry": ["Hmm, try again!", "Oops! Try again!"],
+  "your_turn": "Your turn!",
+  "scenes": [
+    {
+      "id": "start",
+      "lines": { "step1": ["Let's make cupcakes!"], "step2": ["Let's make cupcakes together!"], "step3": ["Let's make cupcakes for our friends!"] }
+    },
+    {
+      "id": "ingredients",
+      "type": "instruction",
+      "lines": {
+        "step1": ["Put in the milk.", "Put in the sugar."],
+        "step2": ["Put in the milk and the sugar.", "Now put in the chocolate."],
+        "step3": ["Put in the milk and the sugar.", "Mimi wants chocolate cupcakes. What do we need?"]
+      },
+      "choices": { "step3": ["chocolate", "strawberries", "sprinkles"] },
+      "answer": { "step3": "chocolate" },
+      "note": "卵はこの場面では入れない（次の count_eggs で1つずつ入れる）。step3は choices から chocolate を選べば正解"
+    },
+    {
+      "id": "count_eggs",
+      "type": "count",
+      "lines": { "step1": ["Two eggs. One, two!"], "step2": ["Four eggs! One, two, three, four!"], "step3": ["How many eggs?"] },
+      "say": { "step1": "One, two!", "step2": "One, two, three, four!", "step3": "Four eggs!" },
+      "note": "step3は卵を4つ入れたあとに「How many eggs?」と聞き、自分で答える"
+    },
+    {
+      "id": "stir",
+      "type": "gesture_circle",
+      "lines": { "step1": ["Stir, stir, stir!"], "step2": ["Stir, stir, stir! Faster!"], "step3": ["Stir, stir, stir!"] },
+      "say": { "step1": "Stir, stir!", "step2": "Stir, stir, stir!", "step3": "Stir, stir, stir!" }
+    },
+    {
+      "id": "bake",
+      "type": "count_along",
+      "lines": {
+        "step1": ["Into the oven!", "Let's count. One, two, three, four, five!", "Ding! They're ready!"],
+        "step2": ["Into the oven!", "Let's count to ten!", "Ding! They're ready!"],
+        "step3": ["Into the oven! Let's count to ten!", "Ding! They're ready!"]
+      },
+      "say": { "step1": "Five!", "step2": "Ten!", "step3": "Ten!" }
+    },
+    {
+      "id": "frosting",
+      "type": "free_choice",
+      "colors": { "step1": ["pink", "purple", "blue", "yellow", "green", "white"], "step2": ["pink", "purple", "blue", "yellow", "green", "white", "red", "orange"], "step3": ["pink", "purple", "blue", "yellow", "green", "white", "red", "orange"] },
+      "lines": {
+        "step1": ["What color?", "{color}! So pretty!"],
+        "step2": ["What color do you like?", "{color}! I like {color} too!"],
+        "step3": ["Bebe wants {order_color} frosting.", "Yay! Thank you!"]
+      },
+      "say": { "step1": "{color}!", "step2": "I like {color}.", "step3": "{order_color}!" },
+      "note": "step1・step2は正解なし。step3は Bebe の注文の色が正解。{order_color} は8色から毎回ランダムに選ぶ"
+    },
+    {
+      "id": "decorate_instruction",
+      "type": "instruction_count",
+      "lines": {
+        "step1": ["Put three hearts on top!"],
+        "step2": ["Put two stars and one strawberry on top!"],
+        "step3": []
+      },
+      "note": "step3はこの場面をとばして自由に飾る"
+    },
+    {
+      "id": "decorate_free",
+      "type": "free_play",
+      "lines": { "step1": ["Wow! Beautiful!"], "step2": ["Wow! Beautiful!"], "step3": ["Wow! What did you put on it?"] },
+      "say": { "step3": "I put three hearts." },
+      "note": "step3は自分で答える。決まった答えはなく、録音して再生するだけ"
+    },
+    {
+      "id": "serve",
+      "type": "give",
+      "lines": { "step1": ["Give it to {character}!", "Yummy! Thank you!"], "step2": ["Give the cupcake to {character}!", "Yummy! Thank you so much!"], "step3": ["Give the cupcake to {character}!", "Yummy! Why do you like cupcakes?"] },
+      "say": { "step1": "Here you go!", "step2": "Here you go, {character}!", "step3": "Because they're yummy!" },
+      "note": "step3は自分で答える。お手本は Because they're yummy! だが、違う答えでもほめる。録音して再生するだけ"
+    },
+    {
+      "id": "reward",
+      "type": "sticker_and_song",
+      "lines": { "step1": ["You did it! Here's a sticker!"], "step2": ["You did it! Here's a sticker!"], "step3": ["You did it! Here's a sticker!"] },
+      "song": "cupcake_song",
+      "note": "歌の中の「Yummy!」は一緒に言えたらOK。この場面は録音しない（say なし）"
+    }
+  ],
+  "songs": {
+    "cupcake_song": {
+      "title": "The Cupcake Song",
+      "melody": "Here We Go Round the Mulberry Bush (public domain)",
+      "seconds": 30,
+      "parent_recording": true,
+      "note": "保護者画面でママなどの歌声を録音して差し替えられる。録音がないときは仮の音声で流す",
+      "lyrics": [
+        "This is the way we stir, stir, stir,",
+        "stir, stir, stir, stir, stir, stir.",
+        "This is the way we stir, stir, stir,",
+        "to make a yummy cupcake!",
+        "This is the way we put on hearts,",
+        "put on hearts, put on hearts.",
+        "This is the way we put on hearts,",
+        "to make a pretty cupcake!"
+      ]
+    }
+  },
+  "cando_links": ["c01", "c02", "c06", "c08", "c14", "c15"]
+}
