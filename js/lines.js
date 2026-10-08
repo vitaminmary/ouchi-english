@@ -63,8 +63,7 @@ export function voiceLines(data) {
     data.retry.forEach(say);
     say(data.your_turn);
     for (let n = 1; n <= Math.max(...Object.values(NUM)); n++) add(who, countWord(n));
-    // 歌詞は原文のまま（文のはじめを大文字にしない）
-    for (const song of Object.values(data.songs || {})) song.lyrics.forEach(l => add(who, l));
+    // 歌詞は対象外（保護者の録音、なければ端末の読み上げで流す）
   }
   return [...out.values()];
 }

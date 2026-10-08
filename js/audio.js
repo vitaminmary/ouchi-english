@@ -99,10 +99,11 @@ function playClip(src, who, signal) {
 
 export async function speak(text, who = 'narrator', opts = {}) {
   if (opts.signal?.aborted) return;
-  const src = clips[`${who}|${text}`];
+  // ttsOnly: 歌詞など、音声ファイルを作らないもの
+  const src = opts.ttsOnly ? null : clips[`${who}|${text}`];
   if (src && await playClip(src, who, opts.signal)) return;
   // 音声ファイルを作り忘れたセリフに気づけるように
-  if (!src && Object.keys(clips).length) console.warn('[voice missing]', who, text);
+  if (!src && !opts.ttsOnly && Object.keys(clips).length) console.warn('[voice missing]', who, text);
   return speakTTS(text, who, opts);
 }
 

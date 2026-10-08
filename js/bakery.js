@@ -519,7 +519,7 @@ async function sing(ctx, song, songId) {
         await sleep(Math.max(0, LINE_SEC * (i + 1) * 1000 - (performance.now() - t0)));
         ctx.check();
         if (i === half) ctx.charEl.classList.replace('dance-stir', 'dance-hearts');
-        speak(song.lyrics[i], ctx.char.id, { signal: ctx.signal, rate: 1.05 });
+        speak(song.lyrics[i], ctx.char.id, { signal: ctx.signal, rate: 1.05, ttsOnly: true });
       }
       await sleep(Math.max(0, melody.seconds * 1000 - (performance.now() - t0)));
     }
