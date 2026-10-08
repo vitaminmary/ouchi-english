@@ -6,20 +6,14 @@ import { el, sleep, makeDraggable, bigNumber, burst, recorderUI, centerOf } from
 import { cupcakeSVG, bowlSVG, ovenSVG, ITEMS, COLORS } from './art.js';
 import * as store from './store.js';
 
-const NUM_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-const NUM = Object.fromEntries(NUM_WORDS.map((w, i) => [w, i]));
+import { NUM, words, isQuestion, sentences, firstNumber, countWord, stirWord, fillTemplate, bakeCue, bakeLine, isGiveLine } from './text.js';
 const ALIASES = {
   eggs: ['eggs', 'egg'], milk: ['milk'], sugar: ['sugar'], chocolate: ['chocolate'],
   hearts: ['hearts', 'heart'], stars: ['stars', 'star'], strawberries: ['strawberries', 'strawberry'],
   sprinkles: ['sprinkles'], candles: ['candles', 'candle'],
 };
 
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const pick = a => a[Math.floor(Math.random() * a.length)];
-const words = t => t.toLowerCase().replace(/[^a-z'\s]/g, ' ').split(/\s+/).filter(Boolean);
-const isQuestion = t => /\?\s*$/.test((t || '').trim());
-const sentences = t => t.match(/[^.!?]+[.!?]*/g).map(s => s.trim());
-const firstNumber = t => { const w = words(t || '').find(w => NUM[w]); return w ? NUM[w] : null; };
 
 // 「Put in two eggs and the milk.」→ { eggs: 2, milk: 1 }
 function parseNeeds(line, keys) {
@@ -43,11 +37,7 @@ function vocab(ctx, group) {
 }
 
 function fill(text, ctx) {
-  return text
-    .replace(/\{color\}/g, ctx.color || 'pink')
-    .replace(/\{order_color\}/g, ctx.orderColor || 'pink')
-    .replace(/\{character\}/g, ctx.char.name)
-    .replace(/(^|[.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+  return fillTemplate(text, { color: ctx.color || 'pink', orderColor: ctx.orderColor || 'pink', name: ctx.char.name });
 }
 
 function linesOf(ctx, scene) {
@@ -124,7 +114,7 @@ function needTask(ctx, { tray, needs, place, count = true, consume = false }) {
           if (count && needs[k] > 1) {
             bigNumber(placed[k]);
             sfx.count(placed[k]);
-            ctx.sayLater(cap(NUM_WORDS[placed[k]]) + '!');
+            ctx.sayLater(countWord(placed[k]));
           } else {
             sfx.pop();
           }
@@ -299,7 +289,7 @@ const SCENES = {
           sfx.swish();
           happy(ctx);
           bowl.style.setProperty('--mix', Math.min(1, stirs / goal));
-          ctx.sayLater(cap(words(line)[0]) + '!');
+          ctx.sayLater(stirWord(line));
           if (stirs >= goal) {
             bowl.onpointerdown = bowl.onpointermove = bowl.onpointerup = null;
             spoon.classList.remove('on');
@@ -325,10 +315,10 @@ const SCENES = {
     const oven = ctx.work.querySelector('.oven');
     const cup = ctx.work.querySelector('.cupcake');
     // 「Into the oven!」をタップの合図として先に言う
-    const [cue, ...restOfFirst] = sentences(lines[0] || '');
-    if (cue && !words(cue).some(w => NUM[w]) && !/count|ding/i.test(cue)) {
+    const { cue, rest } = bakeCue(lines[0]);
+    if (cue) {
       await ctx.line(cue);
-      lines[0] = restOfFirst.join(' ');
+      lines[0] = rest;
     }
     await ctx.until(resolve => {
       oven.onclick = cup.onclick = () => { oven.onclick = cup.onclick = null; resolve(); };
@@ -339,28 +329,18 @@ const SCENES = {
     oven.classList.add('on');
 
     for (const l of lines.filter(Boolean)) {
-      const ws = words(l);
-      const seq = ws.filter(w => NUM[w]);
-      const countTo = l.match(/count to (\w+)/i);
-      if (/\bding\b/i.test(l)) {
+      const part = bakeLine(l);
+      if (part.ding) {
         sfx.ding();
         oven.classList.remove('on');
         cup.outerHTML = cupcakeHTML(ctx, { state: 'baked', cls: 'out-of-oven' });
         const c = centerOf(oven);
         burst(c.x, c.y, 14);
         await ctx.pause(500);
-        await ctx.line(l);
-      } else if (seq.length >= 2) {
-        // 「Let's count. One, two, three, four, five!」→ 前置き → 1つずつ数える
-        const before = l.slice(0, l.toLowerCase().indexOf(seq[0])).trim();
-        if (before) await ctx.line(before);
-        await countAlong(ctx, seq.length, oven);
-      } else if (countTo && NUM[countTo[1].toLowerCase()]) {
-        await ctx.line(l);
-        await countAlong(ctx, NUM[countTo[1].toLowerCase()], oven);
-      } else {
-        await ctx.line(l);
       }
+      // 「Let's count. One, two, …」は前置きを言ってから1つずつ数える
+      if (part.say) await ctx.line(part.say);
+      if (part.count) await countAlong(ctx, part.count, oven);
     }
     await ctx.pause(400);
     await sayStep(ctx, sc, lines.filter(Boolean).pop());
@@ -459,7 +439,7 @@ const SCENES = {
     const target = ctx.charEl.closest('.char-area');
     // 「Give it to Mimi!」など渡す前の指示 → 渡したあとのセリフ
     const all = linesOf(ctx, sc);
-    const n = all.findIndex(l => !/^give\b/i.test(l));
+    const n = all.findIndex(l => !isGiveLine(l));
     const before = n < 0 ? all : all.slice(0, n);
     const lines = n < 0 ? [] : all.slice(n);
     let reminder = 0;
@@ -511,7 +491,7 @@ async function countAlong(ctx, n, oven) {
     bigNumber(i);
     sfx.count(Math.min(i, 8));
     oven?.style.setProperty('--heat', i / n);
-    await ctx.say(cap(NUM_WORDS[i]) + '!');
+    await ctx.say(countWord(i));
     await ctx.pause(250);
   }
 }

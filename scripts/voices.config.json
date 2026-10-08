@@ -1,0 +1,27 @@
+{
+  "model_id": "eleven_v4",
+  "design_model_id": "eleven_ttv_v3",
+  "output_format": "mp3_44100_64",
+  "voices": {
+    "mimi": {
+      "description": "A sweet, bright young female voice for Mimi, a fashionable cartoon kitten who loves the color pink. American English. Warm, cheerful and gentle, like a friendly host of a preschool TV show. Speaks slowly and very clearly for a three-year-old.",
+      "preview_text": "Let's make cupcakes! Put in the milk. Two eggs. One, two! What color? Pink! So pretty! Put three hearts on top! Your turn! Great job! Yummy! Thank you!",
+      "settings": { "stability": 0.5, "similarity_boost": 0.75, "speed": 0.9 }
+    },
+    "bebe": {
+      "description": "An energetic, bubbly, high-pitched young female voice for Bebe, a cartoon bunny who loves sweets and is always full of energy. American English. Bouncy and happy, playful, but clear and slow enough for a three-year-old to follow.",
+      "preview_text": "Let's make cupcakes! Put in the sugar. Stir, stir, stir! Into the oven! Let's count. One, two, three, four, five! Ding! They're ready! Your turn! Yay! Awesome!",
+      "settings": { "stability": 0.45, "similarity_boost": 0.75, "speed": 0.92 }
+    },
+    "popo": {
+      "description": "A soft, relaxed, easygoing voice for Popo, a gentle cartoon panda who loves to dance. American English. Calm, warm, a little playful and unhurried, with a round friendly tone. Very clear for preschool children.",
+      "preview_text": "Let's make cupcakes! Put in the milk. Stir, stir, stir! What color? Purple! So pretty! Wow! Beautiful! Your turn! Good job! Yummy! Thank you so much!",
+      "settings": { "stability": 0.55, "similarity_boost": 0.75, "speed": 0.88 }
+    },
+    "narrator": {
+      "description": "A cheerful, youthful cartoon voice for a friendly little sidekick character in a preschool show. American English. Playful, bright and clear, saying short phrases slowly so a three-year-old can copy them.",
+      "preview_text": "Here you go! Here you go, Mimi! Here you go, Bebe! Here you go, Popo! Thank you! One, two, three! Yummy! I like pink. Because they're yummy!",
+      "settings": { "stability": 0.5, "similarity_boost": 0.75, "speed": 0.9 }
+    }
+  }
+}

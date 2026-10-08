@@ -1,5 +1,5 @@
 import { characterSVG, cupcakeSVG } from './art.js';
-import { onTalk, unlockAudio, sfx, stopSpeaking, record, startRecording, playBlob, micPermission } from './audio.js';
+import { onTalk, unlockAudio, sfx, stopSpeaking, record, startRecording, playBlob, micPermission, loadClips } from './audio.js';
 import { playSongMelody } from './song.js';
 import { $, el, show, holdButton, makeSparkles, burst, centerOf } from './ui.js';
 import { startBakery, stickerHTML } from './bakery.js';
@@ -229,7 +229,7 @@ async function micTest() {
 
 async function init() {
   makeSparkles();
-  data = await fetch('data/01_bakery.json').then(r => r.json());
+  [data] = await Promise.all([fetch('data/01_bakery.json').then(r => r.json()), loadClips()]);
   renderHome();
 
   holdButton($('#parentBtn'), 2000, () => { renderParent(); show('parent'); });

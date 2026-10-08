@@ -63,7 +63,50 @@ const VOICE = {
 let talkListener = () => {};
 export function onTalk(fn) { talkListener = fn; }
 
-export function speak(text, who = 'narrator', { signal, rate } = {}) {
+// ---------- 前もって作った音声ファイル（audio/manifest.json） ----------
+// 「話す人|セリフ」→ ファイル。ファイルがないセリフは端末の読み上げで話す
+let clips = {};
+let playingClip = null;
+
+export async function loadClips(url = 'audio/manifest.json') {
+  try {
+    const res = await fetch(url);
+    if (res.ok) clips = (await res.json()).clips || {};
+  } catch { /* なければ読み上げを使う */ }
+}
+
+function playClip(src, who, signal) {
+  return new Promise(resolve => {
+    const a = new Audio(src);
+    playingClip = a;
+    let done = false;
+    const finish = ok => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (playingClip === a) playingClip = null;
+      talkListener(who, false);
+      resolve(ok);
+    };
+    const timer = setTimeout(() => finish(true), 15000);
+    a.onended = () => finish(true);
+    a.onerror = () => finish(false);
+    signal?.addEventListener('abort', () => { a.pause(); finish(true); }, { once: true });
+    talkListener(who, true);
+    a.play().catch(() => finish(false));
+  });
+}
+
+export async function speak(text, who = 'narrator', opts = {}) {
+  if (opts.signal?.aborted) return;
+  const src = clips[`${who}|${text}`];
+  if (src && await playClip(src, who, opts.signal)) return;
+  // 音声ファイルを作り忘れたセリフに気づけるように
+  if (!src && Object.keys(clips).length) console.warn('[voice missing]', who, text);
+  return speakTTS(text, who, opts);
+}
+
+function speakTTS(text, who, { signal, rate } = {}) {
   return new Promise(resolve => {
     if (signal?.aborted) return resolve();
     if (!window.speechSynthesis) { setTimeout(resolve, 500 + text.length * 70); return; }
@@ -92,7 +135,10 @@ export function speak(text, who = 'narrator', { signal, rate } = {}) {
   });
 }
 
-export function stopSpeaking() { window.speechSynthesis?.cancel(); }
+export function stopSpeaking() {
+  window.speechSynthesis?.cancel();
+  playingClip?.pause();
+}
 
 // 最初のタップで音を使えるようにする
 export function unlockAudio() {
