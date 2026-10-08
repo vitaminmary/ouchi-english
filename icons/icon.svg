@@ -1,15 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd3ea"/><stop offset="1" stop-color="#d9c6ff"/></linearGradient></defs>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <g transform="translate(96 84) scale(1.6)">
-    <path d="M36 112 Q36 70 100 66 Q164 70 164 112 Z" fill="#E9AE6F" stroke="#b97a3f" stroke-width="3"/>
-    <path d="M26 114 Q24 86 58 86 L142 86 Q176 86 174 114 Q100 128 26 114Z" fill="#FF8FC7" stroke="#c8578e" stroke-width="3"/>
-    <path d="M44 90 Q44 62 76 62 L124 62 Q156 62 156 90 Q100 102 44 90Z" fill="#FF8FC7" stroke="#c8578e" stroke-width="3"/>
-    <path d="M66 66 Q68 38 100 26 Q132 38 134 66 Q100 76 66 66Z" fill="#FF8FC7" stroke="#c8578e" stroke-width="3"/>
-    <path d="M52 100 q20 -8 40 -6 M60 76 q14 -6 28 -5 M84 52 q6 -10 14 -14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".6"/>
-    <path d="M34 112 L166 112 L150 186 L50 186 Z" fill="#FFC4DE" stroke="#5a3d4f" stroke-width="3" stroke-linejoin="round"/>
-    <g stroke="#FF94C4" stroke-width="5" stroke-linecap="round"><path d="M58 118 L66 180"/><path d="M83 118 L87 180"/><path d="M108 118 L108 180"/><path d="M133 118 L129 180"/></g>
-    <path d="M100 14 c-8 -12 8 -20 10 -8 c2 -12 18 -4 10 8 l-10 10 Z" fill="#ff5fa2" stroke="#5a3d4f" stroke-width="2.5" transform="translate(-10 -6)"/>
+  <clipPath id="r"><rect width="512" height="512" rx="112"/></clipPath>
+  <g clip-path="url(#r)">
+  <rect width="512" height="512" fill="#ffd3e8"/>
+  <ellipse cx="140" cy="520" rx="260" ry="110" fill="#ffb3d6"/>
+  <ellipse cx="420" cy="530" rx="230" ry="120" fill="#e3c9ff"/>
   </g>
-  <g fill="#fff"><path d="M412 92 l8 18 18 8 -18 8 -8 18 -8 -18 -18 -8 18 -8z"/><path d="M98 380 l6 13 13 6 -13 6 -6 13 -6 -13 -13 -6 13 -6z"/></g>
+  <g transform="translate(96 90) scale(1.6)">
+    <path d="M36 114 Q36 70 100 68 Q164 70 164 114 Z" fill="#F0A35E"/>
+    <g fill="#c53f86">
+      <path d="M24 116 Q22 86 58 86 L142 86 Q178 86 176 116 Q100 130 24 116Z" transform="translate(0 5)"/>
+      <path d="M44 90 Q44 62 76 62 L124 62 Q156 62 156 90 Q100 102 44 90Z" transform="translate(0 5)"/>
+      <path d="M66 66 Q68 38 100 24 Q132 38 134 66 Q100 76 66 66Z" transform="translate(0 5)"/>
+    </g>
+    <g fill="#9B6BFF">
+      <path d="M24 116 Q22 86 58 86 L142 86 Q178 86 176 116 Q100 130 24 116Z"/>
+      <path d="M44 90 Q44 62 76 62 L124 62 Q156 62 156 90 Q100 102 44 90Z"/>
+      <path d="M66 66 Q68 38 100 24 Q132 38 134 66 Q100 76 66 66Z"/>
+    </g>
+    <path d="M52 100 q20 -8 40 -6 M62 76 q14 -6 28 -5 M86 50 q6 -10 14 -14" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+    <path d="M34 112 L166 112 L150 188 L50 188 Z" fill="#FF5FA8"/>
+    <g fill="#FF8FC4"><path d="M52 112 h14 l4 76 h-12 Z"/><path d="M82 112 h14 l0 76 h-12 Z"/><path d="M112 112 h14 l-3 76 h-12 Z"/><path d="M142 112 h14 l-8 76 h-10 Z"/></g>
+    <path d="M100 24 C80 8 84 -8 96 -4 C100 -2 100 2 100 4 C100 2 100 -2 104 -4 C116 -8 120 8 100 24Z" fill="#FF4D94" transform="translate(0 -6)"/>
+  </g>
+  <path d="M412 92 l9 20 20 9 -20 9 -9 20 -9 -20 -20 -9 20 -9z" fill="#fff"/>
+  <path d="M100 150 l6 13 13 6 -13 6 -6 13 -6 -13 -13 -6 13 -6z" fill="#fff"/>
 </svg>

@@ -3,7 +3,7 @@
 import { speak, sfx, record, playBlob, releaseMic } from './audio.js';
 import { playSongMelody, LINE_SEC } from './song.js';
 import { el, sleep, makeDraggable, bigNumber, burst, recorderUI, centerOf } from './ui.js';
-import { cupcakeSVG, bowlSVG, ovenSVG, ITEMS, COLORS } from './art.js';
+import { cupcakeSVG, bowlSVG, ovenSVG, ITEMS, COLORS, ICONS } from './art.js';
 import * as store from './store.js';
 
 import { NUM, words, isQuestion, sentences, firstNumber, countWord, stirWord, fillTemplate, bakeCue, bakeLine, isGiveLine } from './text.js';
@@ -355,7 +355,7 @@ const SCENES = {
     const target = ctx.orderColor;
     const first = fill(lines[0], ctx);
     ctx.work.innerHTML = `<div class="frost-scene">${cupcakeHTML(ctx)}<div class="palette">${colors.map(c =>
-      `<button class="swatch item" data-k="${c}" style="--c:${COLORS[c]}"><svg viewBox="0 0 100 80"><path d="M10 70 Q8 46 34 44 Q30 22 50 8 Q70 22 66 44 Q92 46 90 70 Q50 80 10 70Z" fill="${COLORS[c]}" stroke="#5a3d4f" stroke-width="4"/><path d="M28 56 q10-6 22-5 M44 34 q4-8 9-12" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/></svg></button>`).join('')}</div></div>`;
+      `<button class="swatch item" data-k="${c}" style="--c:${COLORS[c]}"><svg viewBox="0 0 100 80"><path d="M10 70 Q8 46 34 44 Q30 22 50 8 Q70 22 66 44 Q92 46 90 70 Q50 80 10 70Z" fill="${COLORS[c]}"/><path d="M28 56 q10-6 22-5 M44 34 q4-8 9-12" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/></svg></button>`).join('')}</div></div>`;
     const palette = ctx.work.querySelector('.palette');
     let wrong = 0;
     const task = ctx.until(resolve => {
@@ -407,7 +407,7 @@ const SCENES = {
 
   async decorate_free(ctx, sc) {
     const keys = vocab(ctx, 'toppings');
-    ctx.work.innerHTML = `<div class="deco-scene">${cupcakeHTML(ctx)}${trayHTML(keys)}<button class="done-btn hidden" aria-label="できた">💖</button></div>`;
+    ctx.work.innerHTML = `<div class="deco-scene">${cupcakeHTML(ctx)}${trayHTML(keys)}<button class="done-btn hidden" aria-label="できた">${ICONS.check}</button></div>`;
     const cup = ctx.work.querySelector('.cupcake');
     const tray = ctx.work.querySelector('.tray');
     const done = ctx.work.querySelector('.done-btn');
@@ -573,7 +573,7 @@ async function runBakery({ data, step, charId, work, charEl, onExit }, controlle
       ctx.currentLine = null;
       await SCENES[scene.id]?.(ctx, scene);
     }
-    work.innerHTML = `<div class="end-scene">${stickerHTML(store.load().stickers.slice(-1)[0] || {})}<button class="end-home" aria-label="おうちにもどる">🏠</button></div>`;
+    work.innerHTML = `<div class="end-scene">${stickerHTML(store.load().stickers.slice(-1)[0] || {})}<button class="end-home" aria-label="おうちにもどる">${ICONS.home}</button></div>`;
     await ctx.until(resolve => { work.querySelector('.end-home').onclick = resolve; });
   } catch (e) {
     if (!(e instanceof Abort)) console.error(e);
