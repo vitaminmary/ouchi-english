@@ -19,9 +19,10 @@ function hit(rect, x, y, pad = 30) {
   return x > rect.left - pad && x < rect.right + pad && y > rect.top - pad && y < rect.bottom + pad;
 }
 
-// 指で運ぶ。タップだけでも運べる（3歳でもできるように）
+// 指で運ぶ。ふつうはタップだけでも運べる（3歳でもできるように）
+// tap: false にすると、タップでは運ばず onTap を呼ぶ（スワイプして入れる動作にしたいとき）
 // onDrop(point, viaTap) が false を返したら元の場所にもどる
-export function makeDraggable(node, { target, onDrop, ghostClass = '' }) {
+export function makeDraggable(node, { target, onDrop, onTap = null, tap = true, ghostClass = '' }) {
   node.classList.add('draggable');
   node.addEventListener('pointerdown', e => {
     if (node.classList.contains('used')) return;
@@ -56,6 +57,11 @@ export function makeDraggable(node, { target, onDrop, ghostClass = '' }) {
       t?.classList.remove('drop-hover');
       const tr = t.getBoundingClientRect();
       let point;
+      if (!moved && !tap) {
+        ghost.remove();
+        onTap?.();
+        return;
+      }
       if (!moved) {
         // タップ: 的の上へふわっと飛ぶ
         point = { x: tr.left + tr.width * (0.3 + Math.random() * 0.4), y: tr.top + tr.height * (0.3 + Math.random() * 0.3) };

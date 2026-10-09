@@ -22,7 +22,7 @@ export function update(fn) {
   return s;
 }
 
-// ---------- 録音（子どもの声 = recordings、保護者の歌声 = songs） ----------
+// ---------- 録音（子どもの声） ----------
 let dbp = null;
 function db() {
   if (!dbp) {
@@ -31,7 +31,6 @@ function db() {
       req.onupgradeneeded = () => {
         const d = req.result;
         if (!d.objectStoreNames.contains('recordings')) d.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
-        if (!d.objectStoreNames.contains('songs')) d.createObjectStore('songs', { keyPath: 'id' });
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
@@ -59,19 +58,6 @@ export function listRecordings() {
 
 export function deleteRecording(id) {
   return tx('recordings', 'readwrite', s => s.delete(id)).catch(() => null);
-}
-
-// 歌の差し替え用録音 { id: 歌のID, blob, durationMs, createdAt }
-export function getSongRecording(id) {
-  return tx('songs', 'readonly', s => s.get(id)).catch(() => null);
-}
-
-export function saveSongRecording(rec) {
-  return tx('songs', 'readwrite', s => s.put({ ...rec, createdAt: Date.now() })).catch(() => null);
-}
-
-export function deleteSongRecording(id) {
-  return tx('songs', 'readwrite', s => s.delete(id)).catch(() => null);
 }
 
 export function requestPersist() {

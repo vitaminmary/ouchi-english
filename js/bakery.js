@@ -1,12 +1,11 @@
 // コーナー01 お菓子作り（カップケーキ）
 // セリフ・単語はすべて data/01_bakery.json から読む。ここで英語の文を作らない。
 import { speak, sfx, record, playBlob, releaseMic } from './audio.js';
-import { playSongMelody, LINE_SEC } from './song.js';
 import { el, sleep, makeDraggable, bigNumber, burst, recorderUI, centerOf } from './ui.js';
 import { cupcakeSVG, bowlSVG, ovenSVG, ITEMS, COLORS, ICONS } from './art.js';
 import * as store from './store.js';
 
-import { NUM, words, isQuestion, sentences, firstNumber, countWord, stirWord, fillTemplate, bakeCue, bakeLine, isGiveLine } from './text.js';
+import { NUM, words, isQuestion, sentences, firstNumber, countWord, fillTemplate, bakeCue, bakeLine, isGiveLine } from './text.js';
 const ALIASES = {
   eggs: ['eggs', 'egg'], milk: ['milk'], sugar: ['sugar'], chocolate: ['chocolate'],
   hearts: ['hearts', 'heart'], stars: ['stars', 'star'], strawberries: ['strawberries', 'strawberry'],
@@ -65,18 +64,18 @@ async function praise(ctx) {
   await ctx.say(pick(ctx.data.praise));
 }
 
-// お手本 →「Your turn!」→ 3秒録音 → 自分の声を再生 → ほめる（判定・点数なし）
-async function yourTurn(ctx, sceneId, sayText, { model = true, who, question = null, praiseAfter = true } = {}) {
+// お手本 →「Your turn!」→ 録音（ふつうは3秒）→ 自分の声を再生 → ほめる（判定・点数なし）
+async function yourTurn(ctx, sceneId, sayText, { model = true, who, question = null, praiseAfter = true, ms = 3000 } = {}) {
   if (model) await ctx.say(sayText, who || ctx.char.id);
   await ctx.say(ctx.data.your_turn);
   const ui = recorderUI();
   try {
-    const blob = await record(3000, v => ui.level(v), () => ui.start(3000));
+    const blob = await record(ms, v => ui.level(v), () => ui.start(ms));
     ctx.check();
     if (blob && blob.size > 200) {
       store.addRecording({ blob, line: sayText, question, step: ctx.stepN, corner: 'bakery', scene: sceneId, character: ctx.char.id });
       ui.playing();
-      await playBlob(blob);
+      await playBlob(blob, { maxMs: ms + 2000 });
     }
   } finally {
     ui.hide();
@@ -97,9 +96,10 @@ function glow(tray, keys) {
   tray.querySelectorAll('.item').forEach(n => n.classList.toggle('glow', keys.includes(n.dataset.k) && !n.classList.contains('used')));
 }
 
-// 指示どおりに置く。違うものは「try again」、2回違ったら正解が光る
-function needTask(ctx, { tray, needs, place, count = true, consume = false }) {
+// 指示どおりに置く。違うものは「try again」→ 指示をもう一度言う。2回違ったら正解が光る
+function needTask(ctx, { tray, needs, place, count = true, consume = false, line = null }) {
   let wrong = 0;
+  let retrying = false;
   const placed = {};
   const remaining = () => Object.keys(needs).filter(k => (placed[k] || 0) < needs[k]);
   return ctx.until(resolve => {
@@ -127,7 +127,14 @@ function needTask(ctx, { tray, needs, place, count = true, consume = false }) {
         wrong++;
         sfx.boing();
         if (wrong >= 2) glow(tray, remaining());
-        ctx.sayLater(pick(ctx.data.retry));
+        // 続けて間違えても、声は重ねない
+        if (!retrying) {
+          retrying = true;
+          ctx.say(pick(ctx.data.retry))
+            .then(() => line && ctx.say(line))
+            .catch(() => {})
+            .finally(() => { retrying = false; });
+        }
         return false;
       };
     });
@@ -211,7 +218,7 @@ const SCENES = {
     for (const line of lines) {
       // Step 3 の「What do we need?」は選択肢から answer を選ぶ
       const needs = isQuestion(line) && answer ? { [answer]: 1 } : parseNeeds(line, keys);
-      const task = needTask(ctx, { tray, needs, place: k => { sfx.plop(); addToBowl(ctx, bowl, k); } });
+      const task = needTask(ctx, { tray, needs, line, place: k => { sfx.plop(); addToBowl(ctx, bowl, k); } });
       await ctx.line(line);
       await task;
       await ctx.pause(500);
@@ -289,7 +296,6 @@ const SCENES = {
           sfx.swish();
           happy(ctx);
           bowl.style.setProperty('--mix', Math.min(1, stirs / goal));
-          ctx.sayLater(stirWord(line));
           if (stirs >= goal) {
             bowl.onpointerdown = bowl.onpointermove = bowl.onpointerup = null;
             spoon.classList.remove('on');
@@ -311,22 +317,30 @@ const SCENES = {
 
   async bake(ctx, sc) {
     const lines = linesOf(ctx, sc);
-    ctx.work.innerHTML = `<div class="bake-scene">${cupcakeHTML(ctx, { state: 'batter', cls: 'raw' })}<div class="oven tap-me">${ovenSVG()}</div></div>`;
+    ctx.work.innerHTML = `<div class="bake-scene">${cupcakeHTML(ctx, { state: 'batter', cls: 'raw tap-me' })}<div class="bake-arrow">➜</div><div class="oven">${ovenSVG()}</div></div>`;
     const oven = ctx.work.querySelector('.oven');
     const cup = ctx.work.querySelector('.cupcake');
-    // 「Into the oven!」をタップの合図として先に言う
+    // カップケーキを指でオーブンまで運ぶ（タップだけでは入らない）
+    const inOven = ctx.until(resolve => {
+      makeDraggable(cup, {
+        target: oven,
+        tap: false,
+        onTap: () => { cup.classList.remove('wiggle'); void cup.offsetWidth; cup.classList.add('wiggle'); },
+        onDrop: () => { resolve(); return true; },
+      });
+    });
+    // 「Into the oven!」を合図として先に言う
     const { cue, rest } = bakeCue(lines[0]);
     if (cue) {
       await ctx.line(cue);
       lines[0] = rest;
     }
-    await ctx.until(resolve => {
-      oven.onclick = cup.onclick = () => { oven.onclick = cup.onclick = null; resolve(); };
-    });
+    await inOven;
     sfx.pop();
-    oven.classList.remove('tap-me');
-    cup.classList.add('into-oven');
+    cup.classList.add('in-oven');
+    ctx.work.querySelector('.bake-arrow').remove();
     oven.classList.add('on');
+    let counted = 0;
 
     for (const l of lines.filter(Boolean)) {
       const part = bakeLine(l);
@@ -340,10 +354,11 @@ const SCENES = {
       }
       // 「Let's count. One, two, …」は前置きを言ってから1つずつ数える
       if (part.say) await ctx.line(part.say);
-      if (part.count) await countAlong(ctx, part.count, oven);
+      if (part.count) { counted = part.count; await countAlong(ctx, part.count, oven); }
     }
     await ctx.pause(400);
-    await sayStep(ctx, sc, lines.filter(Boolean).pop());
+    // 1〜5（10）を数える声が入るように、数に合わせて長く録音する
+    await sayStep(ctx, sc, lines.filter(Boolean).pop(), { ms: Math.max(3000, counted * 1000 + 2000) });
   },
 
   async frosting(ctx, sc) {
@@ -358,6 +373,7 @@ const SCENES = {
       `<button class="swatch item" data-k="${c}" style="--c:${COLORS[c]}"><svg viewBox="0 0 100 80"><path d="M10 70 Q8 46 34 44 Q30 22 50 8 Q70 22 66 44 Q92 46 90 70 Q50 80 10 70Z" fill="${COLORS[c]}"/><path d="M28 56 q10-6 22-5 M44 34 q4-8 9-12" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/></svg></button>`).join('')}</div></div>`;
     const palette = ctx.work.querySelector('.palette');
     let wrong = 0;
+    let retrying = false;
     const task = ctx.until(resolve => {
       palette.querySelectorAll('.swatch').forEach(b => {
         b.onclick = () => {
@@ -366,7 +382,10 @@ const SCENES = {
             wrong++;
             sfx.boing();
             if (wrong >= 2) glow(palette, [target]);
-            ctx.sayLater(pick(ctx.data.retry));
+            if (!retrying) {
+              retrying = true;
+              ctx.say(pick(ctx.data.retry)).then(() => ctx.say(first)).catch(() => {}).finally(() => { retrying = false; });
+            }
             return;
           }
           palette.querySelectorAll('.swatch').forEach(x => { x.onclick = null; x.classList.toggle('chosen', x === b); });
@@ -397,7 +416,7 @@ const SCENES = {
     wireTray(ctx, tray, cup);
     for (const line of lines) {
       const needs = parseNeeds(line, keys);
-      const task = needTask(ctx, { tray, needs, place: (k, pt, tap) => addTopping(ctx, cup, k, pt, tap) });
+      const task = needTask(ctx, { tray, needs, line, place: (k, pt, tap) => addTopping(ctx, cup, k, pt, tap) });
       await ctx.line(line);
       await task;
       await ctx.pause(700);
@@ -468,21 +487,33 @@ const SCENES = {
 
   async reward(ctx, sc) {
     const lines = linesOf(ctx, sc);
+    const layout = ctx.charEl.closest('.play-layout');
     ctx.charEl.classList.remove('holding-cake', 'eating');
     const sticker = { color: ctx.color, toppings: ctx.toppings.slice(0, 24), at: Date.now() };
-    ctx.work.innerHTML = `<div class="reward-scene"><div class="sticker-big">${stickerHTML(sticker)}</div></div>`;
-    sfx.fanfare();
-    const c = centerOf(ctx.work.querySelector('.sticker-big'));
-    burst(c.x, c.y, 24);
     store.update(s => {
       s.stickers.push(sticker);
       s.plays.bakery = (s.plays.bakery || 0) + 1;
     });
-    for (const l of lines) await ctx.line(l);
-    await ctx.pause(600);
-    const song = ctx.data.songs?.[sc.song];
-    // 歌の「Yummy!」は一緒に言えたらOK。この場面は録音しない
-    if (song) await sing(ctx, song, sc.song);
+    // セリフの最初の文（You did it!）を大きな文字で飛び出させる
+    const cheer = sentences(lines[0] || '')[0] || '';
+    ctx.work.innerHTML = `<div class="reward-scene"><div class="cheer-text">${cheer}</div><div class="sticker-big hidden">${stickerHTML(sticker)}</div></div>`;
+    layout.classList.add('cheer-mode');
+    ctx.charEl.classList.add('celebrate');
+    popConfetti();
+    sfx.fanfare();
+    try {
+      for (const l of lines) await ctx.line(l);
+      // ステッカーが出てくる
+      const big = ctx.work.querySelector('.sticker-big');
+      big.classList.remove('hidden');
+      sfx.sparkle();
+      const c = centerOf(big);
+      burst(c.x, c.y, 24);
+      await ctx.pause(2500);
+    } finally {
+      ctx.charEl.classList.remove('celebrate');
+      layout.classList.remove('cheer-mode');
+    }
   },
 };
 
@@ -496,38 +527,29 @@ async function countAlong(ctx, n, oven) {
   }
 }
 
-// 保護者の歌声があればそれを流す。なければメロディ＋読み上げの仮の音声
-async function sing(ctx, song, songId) {
-  const rec = song.parent_recording ? await store.getSongRecording(songId) : null;
-  ctx.check();
-  ctx.work.innerHTML = `<div class="song-scene"><div class="notes">♪ ♫ ♪</div></div>`;
-  const layout = ctx.charEl.closest('.play-layout');
-  layout.classList.add('song-mode');
-  ctx.charEl.classList.add('dancing', 'dance-stir');
-  // ダンスは歌の後半（ハートの歌詞）で手の動きを変える
-  const half = song.lyrics.length / 2;
-  try {
-    if (rec?.blob) {
-      const t = setTimeout(() => ctx.charEl.classList.replace('dance-stir', 'dance-hearts'), (rec.durationMs || 30000) / 2);
-      await playBlob(rec.blob, { maxMs: (rec.durationMs || 30000) + 2000, signal: ctx.signal });
-      clearTimeout(t);
-    } else {
-      const melody = playSongMelody(song.lyrics.length);
-      ctx.signal.addEventListener('abort', melody.stop, { once: true });
-      const t0 = performance.now();
-      for (let i = 0; i < song.lyrics.length; i++) {
-        await sleep(Math.max(0, LINE_SEC * (i + 1) * 1000 - (performance.now() - t0)));
-        ctx.check();
-        if (i === half) ctx.charEl.classList.replace('dance-stir', 'dance-hearts');
-        speak(song.lyrics[i], ctx.char.id, { signal: ctx.signal, rate: 1.05, ttsOnly: true });
-      }
-      await sleep(Math.max(0, melody.seconds * 1000 - (performance.now() - t0)));
+// クラッカー: 画面の左下と右下から紙ふぶきを飛ばす
+function popConfetti() {
+  const o = document.querySelector('#overlay');
+  const colors = ['#FF6FB5', '#9B6BFF', '#4FB3FF', '#FFD23F', '#3DD07A', '#FF8A3D'];
+  for (const side of [-1, 1]) {
+    sfx.pop();
+    const popper = el(`<div class="popper ${side < 0 ? 'left' : 'right'}"><svg viewBox="0 0 100 100"><path d="M10 90 L40 20 L80 60 Z" fill="#FFD23F"/><path d="M22 62 L52 48 M30 44 L62 66" stroke="#FF6FB5" stroke-width="8" stroke-linecap="round"/></svg></div>`);
+    o.appendChild(popper);
+    setTimeout(() => popper.remove(), 3000);
+    for (let i = 0; i < 40; i++) {
+      const p = el(`<i class="confetti"></i>`);
+      p.style.background = colors[i % colors.length];
+      p.style.left = side < 0 ? '8%' : '92%';
+      // 斜め上に飛んで、ひらひら落ちる
+      p.style.setProperty('--dx', `${side * -(15 + Math.random() * 40)}vw`);
+      p.style.setProperty('--dy', `${-(35 + Math.random() * 45)}vh`);
+      p.style.setProperty('--r', `${Math.random() * 720 - 360}deg`);
+      p.style.animationDelay = `${Math.random() * 0.15}s`;
+      if (i % 3 === 0) p.style.borderRadius = '50%';
+      o.appendChild(p);
+      setTimeout(() => p.remove(), 3200);
     }
-  } finally {
-    ctx.charEl.classList.remove('dancing', 'dance-stir', 'dance-hearts');
-    layout.classList.remove('song-mode');
   }
-  ctx.check();
 }
 
 export function stickerHTML(st) {
@@ -581,7 +603,7 @@ async function runBakery({ data, step, charId, work, charEl, onExit }, controlle
     releaseMic();
     charEl.onclick = null;
     charEl.className = 'character';
-    charEl.closest('.play-layout').classList.remove('song-mode');
+    charEl.closest('.play-layout').classList.remove('cheer-mode');
     onExit();
   }
 }

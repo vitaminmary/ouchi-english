@@ -13,9 +13,6 @@ export const firstNumber = t => { const w = words(t || '').find(w => NUM[w]); re
 // 数を数える声（One! Two! …）
 export const countWord = n => cap(NUM_WORDS[n]) + '!';
 
-// まぜるときの声（「Stir, stir, stir!」→「Stir!」）
-export const stirWord = line => cap(words(line)[0]) + '!';
-
 // {color} {order_color} {character} を入れて、文のはじめを大文字にする
 export function fillTemplate(text, { color = 'pink', orderColor = 'pink', name = '' } = {}) {
   return text

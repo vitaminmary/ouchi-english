@@ -85,11 +85,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .character.jump { animation: jump .6s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes jump { 0% { transform: translateY(0) scale(1, 1); } 30% { transform: translateY(-16%) scale(.95, 1.06); } 70% { transform: translateY(0) scale(1.06, .94); } 100% { transform: none; } }
 
-/* 歌のダンス: 前半は左右にゆれる、後半はぴょんぴょん */
-.character.dancing { animation: sway 1.32s ease-in-out infinite; transform-origin: 50% 100%; }
-@keyframes sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg) translateY(-4%); } }
-.character.dance-hearts .char-img { animation: hop .66s ease-in-out infinite; }
-@keyframes hop { 50% { transform: translateY(-8%) scale(1.04); } }
+/* お祝い: ぴょんぴょん跳ねる */
+.character.celebrate .char-img { animation: hop .6s ease-in-out infinite; }
+@keyframes hop { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-9%) scale(1.04) rotate(3deg); } }
 .character.eating .char-img { animation: chomp .3s ease-in-out 5; }
 @keyframes chomp { 50% { transform: scale(1.05, .94); } }
 
@@ -127,24 +125,26 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 
 /* ---------- 遊ぶ画面 ---------- */
 .play-layout { position: absolute; inset: 0; display: grid; grid-template-columns: 30% 1fr; }
-.char-area { display: grid; place-items: center; padding: 70px 2vw 2vh; position: relative; }
-.char-area .character { width: min(100%, 50vh); }
+.char-area { display: grid; place-items: center end; padding: 70px 0 2vh 6vw; position: relative; }
+.char-area .character { width: min(100%, 46vh); margin-right: -3vw; }
 .char-area.drop-hover .character { transform: scale(1.06); }
 .work { position: relative; display: grid; place-items: center; padding: 2vh 3vw; min-width: 0; min-height: 0; }
 .work > * { width: 100%; height: 100%; }
 
 @media (orientation: portrait) {
   .play-layout { grid-template-columns: 1fr; grid-template-rows: 30% 1fr; }
-  .char-area { padding: 64px 4vw 0; }
-  .char-area .character { height: auto; width: min(60vw, calc((30dvh - 70px) * .625)); }
+  .char-area { place-items: center; padding: 64px 4vw 0; }
+  .char-area .character { height: auto; width: min(60vw, calc((30dvh - 70px) * .625)); margin-right: 0; }
   .home-chars { flex-wrap: wrap; }
   .char-pick { width: min(40vw, 30vh); }
 }
 
-.play-layout.song-mode { grid-template-columns: 55% 1fr; }
-.play-layout.song-mode .char-area .character { width: min(100%, 72vh); }
+.play-layout.cheer-mode { grid-template-columns: 50% 1fr; }
+.play-layout.cheer-mode .char-area { place-items: center; padding-right: 0; }
+.play-layout.cheer-mode .char-area .character { width: min(100%, 52vh); transition: width .4s; }
 @media (orientation: portrait) {
-  .play-layout.song-mode { grid-template-columns: 1fr; grid-template-rows: 62% 1fr; }
+  .play-layout.cheer-mode { grid-template-columns: 1fr; grid-template-rows: 55% 1fr; }
+  .play-layout.cheer-mode .char-area .character { width: min(70vw, calc((55dvh - 70px) * .625)); }
 }
 
 #overlay { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
@@ -161,7 +161,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 }
 .tray.carton { background: #ffe9a3; box-shadow: 0 5px 0 #f2c94c; }
 .item {
-  width: min(17vmin, 120px); height: min(17vmin, 120px);
+  width: min(22vmin, 150px); height: min(22vmin, 150px);
   border-radius: 24px;
   background: #fff;
   display: grid; place-items: center;
@@ -170,7 +170,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   transition: transform .2s, opacity .3s;
 }
 .item .emo { font-size: min(11vmin, 76px); line-height: 1; }
-.item svg { width: 78%; height: 78%; }
+.item svg { width: 88%; height: 88%; }
 .item.lifting { opacity: .35; }
 .item.used { opacity: 0; transform: scale(.3); pointer-events: none; }
 .item.glow { animation: glow 1s ease-in-out infinite; }
@@ -187,7 +187,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .bowl .swirl { transform-box: fill-box; transform-origin: center; transform: rotate(var(--swirl, 0deg)); opacity: calc(.3 + var(--mix, 0) * .7); }
 .bowl-items { position: absolute; inset: 0; pointer-events: none; }
 .in-bowl { position: absolute; transform: translate(-50%, -60%); font-size: min(8vmin, 60px); line-height: 1; opacity: calc(1 - var(--mix, 0)); transition: opacity .4s; }
-.in-bowl svg { width: min(9vmin, 66px); }
+.in-bowl svg { width: min(12vmin, 88px); }
 .bowl.mixed .in-bowl { opacity: 0; }
 .drop-in { animation: dropIn .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes dropIn { from { transform: translate(-50%, -160%) scale(.4); } }
@@ -228,7 +228,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .swatch.chosen { transform: scale(1.18); box-shadow: 0 0 0 5px var(--c); }
 
 .done-btn {
-  position: absolute; right: 2vw; bottom: 2vh;
+  position: absolute; right: 2vw; top: 2vh;
   width: min(18vmin, 120px); height: min(18vmin, 120px); border-radius: 50%;
   background: var(--pink);
   font-size: min(10vmin, 64px);
@@ -249,6 +249,13 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes heat { 50% { fill: #ff9440; } }
 .tap-me { animation: pulse 1.1s ease-in-out infinite; }
 .into-oven { animation: intoOven .8s ease-in forwards; }
+.cupcake.in-oven { opacity: 0; transition: opacity .2s; }
+.cupcake.wiggle { animation: wiggle .5s ease-in-out; }
+@keyframes wiggle { 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+.bake-scene .cupcake { touch-action: none; }
+.bake-arrow { font-size: min(12vmin, 80px); color: var(--pink-deep); animation: nudgeX 1s ease-in-out infinite; pointer-events: none; }
+@keyframes nudgeX { 50% { transform: translateX(20%); } }
+@media (orientation: portrait) { .bake-arrow { transform: rotate(90deg); animation: none; } }
 @keyframes intoOven { to { transform: translateX(80%) scale(.4); opacity: 0; } }
 .out-of-oven { animation: outOven .7s cubic-bezier(.3, 1.5, .5, 1); }
 @keyframes outOven { from { transform: translateX(80%) scale(.4); opacity: 0; } }
@@ -287,7 +294,30 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 }
 .sticker .cupcake { width: 80%; margin: 10%; }
 .reward-scene, .end-scene { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; }
-.sticker-big { width: min(52%, 48vh); animation: stickerIn .8s cubic-bezier(.3, 1.5, .5, 1); transform: rotate(-4deg); }
+.sticker-big { width: min(52%, 40vh); animation: stickerIn .8s cubic-bezier(.3, 1.5, .5, 1); transform: rotate(-4deg); }
+.sticker-big.hidden { display: none; }
+.cheer-text {
+  font-family: "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  font-weight: 900; font-size: min(13vmin, 110px); line-height: 1.05; text-align: center;
+  color: #fff; -webkit-text-stroke: 5px var(--pink-deep); paint-order: stroke fill;
+  text-shadow: 0 7px 0 var(--lav-deep);
+  animation: cheerIn .9s cubic-bezier(.2, 1.8, .4, 1) both, cheerPulse 1.2s ease-in-out .9s infinite;
+}
+@keyframes cheerIn { 0% { transform: scale(0) rotate(-20deg); opacity: 0; } 100% { transform: scale(1) rotate(-4deg); opacity: 1; } }
+@keyframes cheerPulse { 0%, 100% { transform: scale(1) rotate(-4deg); } 50% { transform: scale(1.08) rotate(3deg); } }
+.confetti {
+  position: absolute; bottom: 6vh; width: 12px; height: 18px; border-radius: 3px;
+  animation: confetti 3s cubic-bezier(.15, .7, .4, 1) forwards;
+}
+@keyframes confetti {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  45% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 1; }
+  100% { transform: translate(calc(var(--dx) * 1.2), calc(var(--dy) + 70vh)) rotate(calc(var(--r) * 3)); opacity: 0; }
+}
+.popper { position: absolute; bottom: 2vh; width: min(24vmin, 170px); animation: popperIn .4s ease-out; }
+.popper.left { left: 2vw; }
+.popper.right { right: 2vw; transform: scaleX(-1); }
+@keyframes popperIn { from { opacity: 0; translate: 0 40%; } }
 .sticker-big .sticker::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(115deg, transparent 30%, #ffffffcc 45%, transparent 60%);
@@ -304,8 +334,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   animation: pulse 1.2s ease-in-out infinite;
 }
 
-.song-scene { display: grid; place-items: center; }
-.notes { font-size: min(18vmin, 120px); color: var(--pink-deep); animation: bob 1.32s ease-in-out infinite; letter-spacing: .2em; }
 
 /* ---------- 重ねて出すもの ---------- */
 .big-number {
@@ -367,13 +395,3 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .p-empty { color: #8d7a88; }
 .count-row { display: flex; justify-content: space-between; padding: 6px 0; }
 #micStatus { display: block; margin-top: 8px; }
-.p-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
-.p-btn.p-sub { background: var(--pink); }
-.p-btn.recording { background: #e0446f; animation: pulse 1s ease-in-out infinite; }
-.p-btn:disabled { opacity: .4; }
-.p-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 8px 0; }
-.p-check input { width: 20px; height: 20px; flex: none; accent-color: var(--lav-deep); margin-top: 2px; }
-.p-lyrics { margin: 6px 0 4px; }
-.p-lyrics summary { cursor: pointer; color: var(--lav-deep); font-size: 14px; }
-.p-lyrics pre { font-family: inherit; font-size: 15px; line-height: 1.7; white-space: pre-wrap; margin: 6px 0 0; padding: 10px 12px; background: #faf6ff; border-radius: 10px; }
-#songStatus { display: block; margin-top: 6px; }

@@ -1,7 +1,7 @@
 // アプリが話すセリフをすべて書き出す（音声ファイルを前もって作るため）
 // 返り値: [{ who: 'mimi' | 'bebe' | 'popo' | 'narrator', text }]
 // 話す順番や分け方は bakery.js と同じ text.js の部品で組み立てる
-import { NUM, isQuestion, sentences, countWord, stirWord, fillTemplate, bakeCue, bakeLine, isGiveLine } from './text.js';
+import { NUM, isQuestion, sentences, countWord, fillTemplate, bakeCue, bakeLine, isGiveLine } from './text.js';
 
 const STEPS = ['step1', 'step2', 'step3'];
 
@@ -34,7 +34,6 @@ export function voiceLines(data) {
             // 卵の場面は「Two eggs.」だけ読む（数は1つずつ数える）。Step 3 は質問をそのまま読む
             if (sc.id === 'count_eggs' && !isQuestion(line)) add(who, sentences(line)[0]);
             else add(who, line);
-            if (sc.id === 'stir') add(who, stirWord(line));
           }
         }
         if (sc.id === 'bake' && lines.length) {
@@ -63,7 +62,6 @@ export function voiceLines(data) {
     data.retry.forEach(say);
     say(data.your_turn);
     for (let n = 1; n <= Math.max(...Object.values(NUM)); n++) add(who, countWord(n));
-    // 歌詞は対象外（保護者の録音、なければ端末の読み上げで流す）
   }
   return [...out.values()];
 }

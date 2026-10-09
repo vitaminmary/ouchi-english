@@ -99,11 +99,10 @@ function playClip(src, who, signal) {
 
 export async function speak(text, who = 'narrator', opts = {}) {
   if (opts.signal?.aborted) return;
-  // ttsOnly: 歌詞など、音声ファイルを作らないもの
-  const src = opts.ttsOnly ? null : clips[`${who}|${text}`];
+  const src = clips[`${who}|${text}`];
   if (src && await playClip(src, who, opts.signal)) return;
   // 音声ファイルを作り忘れたセリフに気づけるように
-  if (!src && !opts.ttsOnly && Object.keys(clips).length) console.warn('[voice missing]', who, text);
+  if (!src && Object.keys(clips).length) console.warn('[voice missing]', who, text);
   return speakTTS(text, who, opts);
 }
 
@@ -150,34 +149,6 @@ export function unlockAudio() {
     speechSynthesis.speak(u);
     unlockAudio.done = true;
   }
-}
-
-// ---------- メロディ（オルゴール風） ----------
-const NOTE = { D4: 293.66, 'F#4': 369.99, G4: 392.0, A4: 440.0, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, G3: 196.0, D3: 146.83 };
-
-function bell(freq, at, dur, dest) {
-  tone(freq, { at, dur: Math.max(0.5, dur * 1.6), type: 'sine', gain: 0.16, dest });
-  tone(freq * 2, { at, dur: 0.4, type: 'triangle', gain: 0.03, dest });
-}
-
-// notes: [[音名, 8分音符いくつ], ...]  eighth: 8分音符の秒数
-// 返り値: { seconds: 長さ, stop(): 途中で止める }
-export function playMelody(notes, { eighth = 0.2, bass = true } = {}) {
-  const c = audioCtx();
-  const bus = c.createGain();
-  bus.connect(c.destination);
-  let t = 0.05;
-  for (const [n, len] of notes) {
-    if (n) bell(NOTE[n], t, len * eighth, bus);
-    t += len * eighth;
-  }
-  if (bass) {
-    for (let b = 0.05; b < t - 0.1; b += eighth * 6) {
-      tone(NOTE.G3, { at: b, dur: eighth * 2.5, gain: 0.07, dest: bus });
-      tone(NOTE.D3, { at: b + eighth * 3, dur: eighth * 2.5, gain: 0.05, dest: bus });
-    }
-  }
-  return { seconds: t, stop: () => bus.disconnect() };
 }
 
 // ---------- 録音 ----------

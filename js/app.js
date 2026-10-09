@@ -1,6 +1,5 @@
 import { characterHTML, cupcakeSVG } from './art.js';
-import { onTalk, unlockAudio, sfx, stopSpeaking, record, startRecording, playBlob, micPermission, loadClips } from './audio.js';
-import { playSongMelody } from './song.js';
+import { onTalk, unlockAudio, sfx, stopSpeaking, record, playBlob, micPermission, loadClips } from './audio.js';
 import { $, el, show, holdButton, makeSparkles, burst, centerOf } from './ui.js';
 import { startBakery, stickerHTML } from './bakery.js';
 import * as store from './store.js';
@@ -16,7 +15,7 @@ const STEPS = [
 ];
 
 const SCENE_JA = {
-  count_eggs: '卵を数える', stir: 'まぜる', bake: '焼く', frosting: 'クリームの色', decorate_free: '自由に飾る', serve: 'どうぞ', song: '歌',
+  count_eggs: '卵を数える', stir: 'まぜる', bake: '焼く', frosting: 'クリームの色', decorate_free: '自由に飾る', serve: 'どうぞ',
 };
 
 // ---------- ホーム ----------
@@ -96,7 +95,6 @@ async function renderParent() {
   });
 
   const plays = s.plays.bakery || 0;
-  renderSongCard();
   $('#playCounts').innerHTML = `<div class="count-row"><span>01 お菓子作り（カップケーキ）</span><b>${plays}回</b></div>`;
 
   const recs = await store.listRecordings();
@@ -135,79 +133,6 @@ async function renderParent() {
   }
 }
 
-// ---------- 歌の録音（songs.*.parent_recording） ----------
-
-let songRec = null;
-
-function parentSong() {
-  const id = Object.keys(data.songs || {}).find(k => data.songs[k].parent_recording);
-  return id ? { id, ...data.songs[id] } : null;
-}
-
-async function renderSongCard() {
-  const song = parentSong();
-  $('#songCard').hidden = !song;
-  if (!song) return;
-  $('#songTitle').textContent = song.title;
-  $('#songMelody').textContent = `メロディ: ${song.melody}`;
-  $('#songLyrics').textContent = song.lyrics.join('\n');
-  const rec = await store.getSongRecording(song.id);
-  const busy = !!songRec;
-  $('#songRec').textContent = busy ? '止める' : rec ? '録音しなおす' : '録音する';
-  $('#songRec').classList.toggle('recording', busy);
-  $('#songPlay').disabled = busy || !rec;
-  $('#songDel').hidden = busy || !rec;
-  $('#songGuide').disabled = busy;
-  if (busy) return;
-  $('#songStatus').textContent = rec
-    ? `録音あり（${fmtDate(rec.createdAt)} ${fmtTime(rec.createdAt)}・${Math.round(rec.durationMs / 1000)}秒）。ごほうびの歌はこの声で流れます。`
-    : 'まだ録音はありません。ごほうびの歌は仮の音声で流れます。';
-}
-
-async function toggleSongRecording() {
-  if (songRec) { await finishSongRecording(); return; }
-  const song = parentSong();
-  unlockAudio();
-  const r = await startRecording();
-  if (!r) {
-    $('#songStatus').textContent = 'マイクが使えませんでした。下の「マイクの確認」で許可してください。';
-    return;
-  }
-  songRec = { r, song };
-  if ($('#songGuide').checked) {
-    // 前奏1行のあとに歌い始める。メロディが終わったら自動で止める
-    songRec.melody = playSongMelody(song.lyrics.length);
-    songRec.timer = setTimeout(finishSongRecording, songRec.melody.seconds * 1000 + 800);
-    $('#songStatus').textContent = '録音中… 前奏のあとに歌ってください。';
-  } else {
-    songRec.timer = setTimeout(finishSongRecording, 90000);
-    $('#songStatus').textContent = '録音中… 歌い終わったら「止める」を押してください（最長90秒）。';
-  }
-  renderSongCard();
-}
-
-async function finishSongRecording() {
-  const cur = songRec;
-  if (!cur) return;
-  songRec = null;
-  clearTimeout(cur.timer);
-  cur.melody?.stop();
-  const { blob, durationMs } = await cur.r.stop();
-  if (blob.size > 1000) await store.saveSongRecording({ id: cur.song.id, blob, durationMs });
-  renderSongCard();
-}
-
-async function playSongRecording() {
-  const rec = await store.getSongRecording(parentSong().id);
-  if (rec) playBlob(rec.blob, { maxMs: rec.durationMs + 2000 });
-}
-
-async function deleteSongRecording() {
-  if (!confirm('歌の録音を削除しますか？（仮の音声にもどります）')) return;
-  await store.deleteSongRecording(parentSong().id);
-  renderSongCard();
-}
-
 async function micTest() {
   const status = $('#micStatus');
   unlockAudio();
@@ -234,11 +159,8 @@ async function init() {
 
   holdButton($('#parentBtn'), 2000, () => { renderParent(); show('parent'); });
   holdButton($('#homeBtn'), 1200, () => current?.stop());
-  $('#parentClose').onclick = async () => { await finishSongRecording(); renderHome(); show('home'); };
+  $('#parentClose').onclick = () => { renderHome(); show('home'); };
   $('#micTest').onclick = micTest;
-  $('#songRec').onclick = toggleSongRecording;
-  $('#songPlay').onclick = playSongRecording;
-  $('#songDel').onclick = deleteSongRecording;
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
