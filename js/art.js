@@ -5,107 +5,139 @@ export const COLORS = {
   green: '#3DD07A', white: '#FFFFFF', red: '#FF3B5C', orange: '#FF8A3D',
 };
 
-// フラットでポップな絵: 線は使わず、丸・三角・角丸の形と、はっきりした色で描く
+// フラットでポップな絵: 太い線は使わず、丸い形とはっきりした色で描く（キャラクターは保護者が作ったイメージ画像をもとにしている）
 const DARK = '#3B2347';
+const BROWN = '#3E2418';
+const PINK = '#F06BAE';
+const PINK_DEEP = '#E0509A';
+const GOLD = '#F2C14E';
 
-function eyes(lx, rx, y, r = 17, ring = null) {
-  // ring: 白い顔でも白目が見えるように付ける縁の色
-  const eye = x => `${ring ? `<circle cx="${x}" cy="${y}" r="${r + 4}" fill="${ring}"/>` : ''}<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>
-    <circle cx="${x + r * 0.15}" cy="${y + r * 0.08}" r="${r * 0.5}" fill="${DARK}"/>
-    <circle cx="${x + r * 0.32}" cy="${y - r * 0.18}" r="${r * 0.16}" fill="#fff"/>`;
-  return `<g class="eyes">${eye(lx)}${eye(rx)}</g>`;
+// 大きな白目に、茶色の黒目が少し横を見ている。まつげ付き
+function eyes(lx, rx, y, { w = 15, h = 18, look = 3, outline = null, lashes = true } = {}) {
+  const eye = (x, side) => `
+    <ellipse cx="${x}" cy="${y}" rx="${w}" ry="${h}" fill="#fff"${outline ? ` stroke="${outline}" stroke-width="2"` : ''}/>
+    <ellipse cx="${x + look}" cy="${y + 2}" rx="${w * 0.62}" ry="${h * 0.66}" fill="${BROWN}"/>
+    <circle cx="${x + look + w * 0.25}" cy="${y - h * 0.22}" r="${w * 0.2}" fill="#fff"/>
+    ${lashes ? `<path d="M${x + side * w * 0.55} ${y - h * 0.82} l${side * 5} -7 M${x + side * w * 0.9} ${y - h * 0.45} l${side * 8} -4" stroke="${BROWN}" stroke-width="2.6" stroke-linecap="round"/>` : ''}`;
+  return `<g class="eyes">${eye(lx, -1)}${eye(rx, 1)}</g>`;
 }
 
-function mouth(y, { teeth = false } = {}) {
-  return `<path class="mouth-closed" d="M89 ${y} q5.5 7 11 0 q5.5 7 11 0" fill="none" stroke="${DARK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+function nose(y, color = BROWN) {
+  return `<path d="M94 ${y} h12 q-1 6 -6 8 q-5 -2 -6 -8z" fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+
+function mouth(y) {
+  return `<path class="mouth-closed" d="M91 ${y} q4.5 6 9 0 q4.5 6 9 0" fill="none" stroke="${BROWN}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
     <g class="mouth-open">
-      <path d="M86 ${y - 3} h28 a14 14 0 0 1 -28 0 z" fill="#7A1F45"/>
-      <ellipse cx="100" cy="${y + 7}" rx="8" ry="4.5" fill="#FF6F91"/>
-      ${teeth ? `<rect x="93" y="${y - 3}" width="6" height="7" rx="1.5" fill="#fff"/><rect x="101" y="${y - 3}" width="6" height="7" rx="1.5" fill="#fff"/>` : ''}
+      <path d="M88 ${y - 2} h24 a12 13 0 0 1 -24 0 z" fill="#7A2340"/>
+      <ellipse cx="100" cy="${y + 7}" rx="7" ry="4" fill="#FF7FA3"/>
     </g>`;
 }
 
-function cheeks(y, color = '#FF5E9C') {
-  return `<circle cx="50" cy="${y}" r="10" fill="${color}" opacity=".45"/><circle cx="150" cy="${y}" r="10" fill="${color}" opacity=".45"/>`;
+function cheeks(y, color = '#F9A3C7', dx = 38) {
+  return `<circle cx="${100 - dx}" cy="${y}" r="10" fill="${color}"/><circle cx="${100 + dx}" cy="${y}" r="10" fill="${color}"/>`;
 }
 
-// 体: ワンピース・腕・足（腕は .arm でダンスに使う）
-function body({ dress, skin, legs = skin, arms = skin }) {
-  return `<g class="body">
-    <rect x="70" y="200" width="18" height="28" rx="8" fill="${legs}"/>
-    <rect x="112" y="200" width="18" height="28" rx="8" fill="${legs}"/>
-    <g transform="rotate(20 50 184)"><ellipse class="arm arm-l" cx="50" cy="184" rx="11" ry="20" fill="${arms}"/></g>
-    <g transform="rotate(-20 150 184)"><ellipse class="arm arm-r" cx="150" cy="184" rx="11" ry="20" fill="${arms}"/></g>
-    <path d="M70 156 L130 156 L148 212 Q100 222 52 212 Z" fill="${dress}"/>
-  </g>`;
+function heart(cx, cy, s, fill) {
+  return `<path d="M${cx} ${cy + s * 0.9} C${cx - s * 1.25} ${cy + s * 0.05} ${cx - s * 0.9} ${cy - s * 0.95} ${cx} ${cy - s * 0.35} C${cx + s * 0.9} ${cy - s * 0.95} ${cx + s * 1.25} ${cy + s * 0.05} ${cx} ${cy + s * 0.9}Z" fill="${fill}"/>`;
 }
+
+// 腕は .arm（ダンスで動かす）。傾きは外側の g で付ける
+function arms(color, { y = 178, dx = 44, tilt = 25 } = {}) {
+  return `<g transform="rotate(${tilt} ${100 - dx} ${y})"><ellipse class="arm arm-l" cx="${100 - dx}" cy="${y}" rx="10" ry="19" fill="${color}"/></g>
+    <g transform="rotate(${-tilt} ${100 + dx} ${y})"><ellipse class="arm arm-r" cx="${100 + dx}" cy="${y}" rx="10" ry="19" fill="${color}"/></g>`;
+}
+
+// 下ぶくれの丸い頭
+const HEAD = 'M38 112 C38 68 66 50 100 50 C134 50 162 68 162 112 C162 146 136 164 100 164 C64 164 38 146 38 112Z';
 
 const CHARACTERS = {
-  // 猫のMimi: おしゃれでピンクが好き
-  mimi: () => `
-    ${body({ dress: '#8E5CF7', skin: '#FF9CCB' })}
-    <g class="head">
-      <path d="M40 84 L52 12 L100 56 Z" fill="#FF9CCB"/>
-      <path d="M54 66 L60 32 L84 56 Z" fill="#FF5FA8"/>
-      <path d="M160 84 L148 12 L100 56 Z" fill="#FF9CCB"/>
-      <path d="M146 66 L140 32 L116 56 Z" fill="#FF5FA8"/>
-      <rect x="30" y="44" width="140" height="118" rx="52" fill="#FF9CCB"/>
-      <ellipse cx="100" cy="132" rx="32" ry="22" fill="#FFE1EF"/>
-      ${eyes(70, 130, 100)}
-      ${cheeks(128)}
-      <path d="M93 116 h14 l-7 8 z" fill="#C2185B" stroke="#C2185B" stroke-width="3" stroke-linejoin="round"/>
-      ${mouth(130)}
-      <g stroke="${DARK}" stroke-width="3.5" stroke-linecap="round"><path d="M28 120 h-16"/><path d="M30 132 l-15 5"/><path d="M172 120 h16"/><path d="M170 132 l15 5"/></g>
-      <g transform="translate(140 46) rotate(15)">
-        <path d="M0 0 L-24 -14 L-24 14 Z" fill="#8E5CF7"/>
-        <path d="M0 0 L24 -14 L24 14 Z" fill="#8E5CF7"/>
-        <circle r="7.5" fill="#B48BFF"/>
-      </g>
-    </g>`,
-  // うさぎのBebe: 甘いものが好き・いつも元気
+  // うさぎのBebe: 白い体、ピンクのリボンとワンピース、ポシェット
   bebe: () => `
-    ${body({ dress: '#FFC93C', skin: '#FFFFFF' })}
-    <g class="head">
-      <rect x="54" y="-8" width="32" height="88" rx="16" fill="#fff" transform="rotate(-8 70 70)"/>
-      <rect x="62" y="6" width="16" height="60" rx="8" fill="#FFB3D1" transform="rotate(-8 70 70)"/>
-      <rect x="114" y="-8" width="32" height="88" rx="16" fill="#fff" transform="rotate(8 130 70)"/>
-      <rect x="122" y="6" width="16" height="60" rx="8" fill="#FFB3D1" transform="rotate(8 130 70)"/>
-      <rect x="34" y="56" width="132" height="108" rx="54" fill="#fff"/>
-      ${eyes(74, 126, 104, 16, '#EADCFB')}
-      ${cheeks(130)}
-      <ellipse cx="100" cy="122" rx="7" ry="5" fill="#FF5FA8"/>
-      ${mouth(134, { teeth: true })}
-      <g transform="translate(140 62) rotate(18)">
-        <path d="M0 -12 C15 -12 17 6 0 19 C-17 6 -15 -12 0 -12Z" fill="#FF4D6D"/>
-        <path d="M-8 -12 L0 -19 L8 -12 L0 -8 Z" fill="#2EC46B"/>
-        <g fill="#FFE07A"><circle cx="-4" cy="-2" r="1.8"/><circle cx="4" cy="2" r="1.8"/><circle cx="-2" cy="8" r="1.8"/></g>
-      </g>
-    </g>`,
-  // パンダのPopo: のんびり・ダンスが好き
-  popo: () => `
     <g class="body">
-      <rect x="70" y="200" width="20" height="28" rx="9" fill="#2B2233"/>
-      <rect x="110" y="200" width="20" height="28" rx="9" fill="#2B2233"/>
-      <g transform="rotate(22 52 182)"><ellipse class="arm arm-l" cx="52" cy="182" rx="12" ry="21" fill="#2B2233"/></g>
-      <g transform="rotate(-22 148 182)"><ellipse class="arm arm-r" cx="148" cy="182" rx="12" ry="21" fill="#2B2233"/></g>
-      <ellipse cx="100" cy="186" rx="48" ry="36" fill="#fff"/>
-      <ellipse cx="100" cy="194" rx="26" ry="20" fill="#E9E2F5"/>
-      <g transform="translate(100 156)"><path d="M0 0 L-16 -9 L-16 9 Z" fill="#2EC4B6"/><path d="M0 0 L16 -9 L16 9 Z" fill="#2EC4B6"/><circle r="5" fill="#7FE3D9"/></g>
+      <rect x="80" y="202" width="14" height="22" rx="6" fill="#fff"/><rect x="106" y="202" width="14" height="22" rx="6" fill="#fff"/>
+      <ellipse cx="85" cy="225" rx="11" ry="6" fill="${PINK_DEEP}"/><ellipse cx="115" cy="225" rx="11" ry="6" fill="${PINK_DEEP}"/>
+      ${arms('#fff')}
+      <path d="M80 158 L120 158 L146 210 Q100 220 54 210 Z" fill="${PINK}"/>
+      <rect x="72" y="176" width="56" height="7" rx="3.5" fill="#F9A8CF"/>
+      <rect x="94" y="173.5" width="12" height="12" rx="2.5" fill="none" stroke="${GOLD}" stroke-width="3"/>
+      <path d="M82 160 L138 192" stroke="${GOLD}" stroke-width="3" stroke-linecap="round"/>
+      <rect x="128" y="186" width="28" height="23" rx="7" fill="${PINK_DEEP}"/>
+      ${heart(142, 197, 6, '#FFC2DD')}
     </g>
     <g class="head">
-      <circle cx="46" cy="52" r="24" fill="#2B2233"/>
-      <circle cx="154" cy="52" r="24" fill="#2B2233"/>
-      <circle cx="100" cy="102" r="66" fill="#fff"/>
-      <ellipse cx="70" cy="104" rx="21" ry="25" fill="#2B2233" transform="rotate(22 70 104)"/>
-      <ellipse cx="130" cy="104" rx="21" ry="25" fill="#2B2233" transform="rotate(-22 130 104)"/>
-      ${eyes(72, 128, 102, 11)}
-      ${cheeks(132)}
-      <ellipse cx="100" cy="126" rx="9" ry="6" fill="#2B2233"/>
-      ${mouth(136)}
-      <g transform="translate(64 46)">
-        <g fill="#FFC93C"><circle cx="0" cy="-10" r="7"/><circle cx="9.5" cy="-3" r="7"/><circle cx="6" cy="8" r="7"/><circle cx="-6" cy="8" r="7"/><circle cx="-9.5" cy="-3" r="7"/></g>
-        <circle r="5.5" fill="#FF5FA8"/>
+      <ellipse cx="76" cy="30" rx="17" ry="44" fill="#fff" transform="rotate(-8 76 30)"/>
+      <ellipse cx="126" cy="28" rx="17" ry="44" fill="#fff" transform="rotate(12 126 28)"/>
+      <path d="${HEAD}" fill="#fff"/>
+      <g transform="translate(128 58) rotate(-12)">
+        <path d="M0 0 C-10 -18 -34 -16 -30 2 C-28 14 -10 12 0 0Z" fill="${PINK}"/>
+        <path d="M0 0 C10 -18 34 -16 30 2 C28 14 10 12 0 0Z" fill="${PINK}"/>
+        <rect x="-7" y="-7" width="14" height="14" rx="5" fill="${PINK_DEEP}"/>
       </g>
+      ${eyes(78, 122, 104, { outline: '#D9C6D2' })}
+      ${cheeks(132)}
+      ${nose(120)}
+      ${mouth(134)}
+    </g>`,
+  // 猫のMimi: オレンジ色、ハートのサングラス、ヘッドホン、白いトップスとピンクのスカート
+  mimi: () => `
+    <g class="body">
+      <path d="M134 200 C168 196 172 166 156 152" stroke="#F5A23D" stroke-width="12" stroke-linecap="round" fill="none"/>
+      <circle cx="156" cy="152" r="7.5" fill="#FBD7A2"/>
+      <rect x="80" y="202" width="15" height="24" rx="7" fill="#F5A23D"/><rect x="105" y="202" width="15" height="24" rx="7" fill="#F5A23D"/>
+      ${arms('#F5A23D')}
+      <path d="M70 184 L130 184 L144 212 Q100 220 56 212 Z" fill="${PINK}"/>
+      <rect x="68" y="182" width="64" height="7" rx="3.5" fill="#F9A8CF"/>
+      <rect x="70" y="152" width="60" height="34" rx="11" fill="#fff"/>
+      ${heart(100, 172, 8, PINK)}
+      <g fill="${GOLD}">${[0, 1, 2, 3, 4, 5, 6].map(i => { const t = i / 6; return `<circle cx="${80 + 40 * t}" cy="${155 + 14 * Math.sin(Math.PI * t)}" r="2.2"/>`; }).join('')}</g>
+    </g>
+    <g class="head">
+      <path d="M38 108 Q100 -36 162 108" stroke="${PINK}" stroke-width="9" fill="none"/>
+      <path d="M48 80 L58 24 L96 58 Z" fill="#F5A23D" stroke="#F5A23D" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M60 68 L65 40 L84 58 Z" fill="#FBCB8F"/>
+      <path d="M152 80 L142 24 L104 58 Z" fill="#F5A23D" stroke="#F5A23D" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M140 68 L135 40 L116 58 Z" fill="#FBCB8F"/>
+      <path d="${HEAD}" fill="#F5A23D"/>
+      <ellipse cx="100" cy="134" rx="23" ry="15" fill="#F9BC6E"/>
+      <circle cx="38" cy="112" r="17" fill="${PINK}"/><circle cx="36" cy="112" r="11" fill="#fff"/>
+      <circle cx="162" cy="112" r="17" fill="${PINK}"/><circle cx="164" cy="112" r="11" fill="#fff"/>
+      ${heart(78, 64, 15, PINK)}${heart(78, 64, 10, '#4A2A5E')}
+      ${heart(122, 64, 15, PINK)}${heart(122, 64, 10, '#4A2A5E')}
+      <rect x="90" y="58" width="20" height="5" rx="2.5" fill="${PINK}"/>
+      ${eyes(78, 122, 106)}
+      ${cheeks(134, '#F27FA8', 40)}
+      <g stroke="${BROWN}" stroke-width="2.5" stroke-linecap="round"><path d="M56 126 l-10 -2"/><path d="M56 133 l-10 3"/><path d="M144 126 l10 -2"/><path d="M144 133 l10 3"/></g>
+      ${nose(122)}
+      ${mouth(136)}
+    </g>`,
+  // パンダのPopo: 青い帽子、丸い青メガネ、青いパーカー
+  popo: () => `
+    <g class="body">
+      <rect x="76" y="200" width="20" height="26" rx="9" fill="#23202B"/><rect x="104" y="200" width="20" height="26" rx="9" fill="#23202B"/>
+      ${arms('#23202B', { dx: 46 })}
+      <path d="M64 156 L136 156 Q154 186 146 214 Q100 222 54 214 Q46 186 64 156Z" fill="#4A86E8"/>
+      <rect x="76" y="188" width="48" height="18" rx="7" fill="#6FA0F0"/>
+      <g stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M92 160 L90 178"/><path d="M108 160 L110 178"/></g>
+    </g>
+    <g class="head">
+      <circle cx="46" cy="64" r="22" fill="#23202B"/>
+      <circle cx="154" cy="64" r="22" fill="#23202B"/>
+      <path d="${HEAD}" fill="#fff"/>
+      <ellipse cx="76" cy="108" rx="18" ry="22" fill="#23202B" transform="rotate(20 76 108)"/>
+      <ellipse cx="124" cy="108" rx="18" ry="22" fill="#23202B" transform="rotate(-20 124 108)"/>
+      ${eyes(77, 123, 106, { w: 12, h: 13, look: 3, lashes: false })}
+      <g fill="none" stroke="#3B7BE0" stroke-width="5">
+        <circle cx="77" cy="106" r="21"/><circle cx="123" cy="106" r="21"/>
+        <path d="M97 102 q3 -4 6 0"/><path d="M56 102 L40 96"/><path d="M144 102 L160 96"/>
+      </g>
+      ${cheeks(138, '#F9A3C7', 40)}
+      <ellipse cx="100" cy="132" rx="7" ry="5" fill="#23202B"/>
+      ${mouth(143)}
+      <path d="M54 72 Q56 22 100 20 Q144 22 146 72 Q100 60 54 72Z" fill="#3B7BE0"/>
+      <rect x="22" y="62" width="40" height="13" rx="6.5" fill="#2F67C4" transform="rotate(14 42 68)"/>
+      <path d="M58 60 Q100 46 142 60" stroke="#2F67C4" stroke-width="4" fill="none"/>
+      <circle cx="100" cy="22" r="5" fill="#2F67C4"/>
     </g>`,
 };
 

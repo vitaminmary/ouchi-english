@@ -23,8 +23,8 @@ html, body {
   -webkit-user-select: none;
   font-family: "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", "Noto Sans JP", system-ui, sans-serif;
   color: var(--ink);
-  /* フラットな背景: ピンクの地に、下に丘 */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 200' preserveAspectRatio='none'%3E%3Cellipse cx='220' cy='210' rx='420' ry='150' fill='%23ffb3d6'/%3E%3Cellipse cx='820' cy='220' rx='380' ry='170' fill='%23e3c9ff'/%3E%3C/svg%3E") bottom / 100% 26vh no-repeat, #ffd3e8;
+  /* フラットな背景: ピンクの空に太陽と雲、下に丘（キャラクターのイメージ画像に合わせる） */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 220'%3E%3Ccircle cx='860' cy='80' r='46' fill='%23ffd966'/%3E%3Cg fill='%23ffffff'%3E%3Crect x='120' y='70' width='130' height='40' rx='20'/%3E%3Ccircle cx='170' cy='70' r='30'/%3E%3Ccircle cx='210' cy='78' r='22'/%3E%3Crect x='640' y='120' width='110' height='34' rx='17'/%3E%3Ccircle cx='685' cy='120' r='24'/%3E%3Ccircle cx='720' cy='126' r='17'/%3E%3C/g%3E%3C/svg%3E") top center / min(100%, 160vh) auto no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 200' preserveAspectRatio='none'%3E%3Cellipse cx='220' cy='210' rx='420' ry='150' fill='%23f29bc6'/%3E%3Cellipse cx='820' cy='220' rx='380' ry='170' fill='%23ddb8f2'/%3E%3C/svg%3E") bottom / 100% 26vh no-repeat, #f9c0dc;
 }
 
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
@@ -104,15 +104,16 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .home-emblem { width: min(22vh, 30vw); animation: bob 3s ease-in-out infinite; }
 .home-chars { display: flex; gap: 3vw; justify-content: center; align-items: center; width: 100%; }
 .char-pick {
-  width: min(28vw, 38vh);
+  width: min(29vw, 44vh);
   aspect-ratio: 1;
+  min-height: 0; overflow: hidden;
   display: grid; place-items: center;
   padding: 3%;
   border-radius: 50%;
   background: #e9ddff;
   transition: transform .2s;
 }
-.char-pick .character { width: 80%; margin-top: 6%; }
+.char-pick .character { width: 74%; margin-top: 4%; }
 .char-pick:nth-child(2) { background: #fff0b8; }
 .char-pick:nth-child(3) { background: #c4f1ea; }
 .char-pick:nth-child(2) .character { animation-delay: .4s; }
