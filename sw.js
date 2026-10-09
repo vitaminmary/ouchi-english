@@ -1,9 +1,9 @@
 // オフラインでも遊べるようにする。新しい内容があればそちらを優先（ネット優先・なければ保存分）
-const CACHE = 'sumire-v6';
+const CACHE = 'sumire-v7';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/app.js', 'js/art.js', 'js/audio.js', 'js/bakery.js', 'js/song.js', 'js/store.js', 'js/text.js', 'js/ui.js',
-  'data/01_bakery.json', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'data/01_bakery.json', 'img/characters/bebe.png', 'img/characters/mimi.png', 'img/characters/popo.png', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 
 // 声の音声ファイルも先に保存しておく（1つ失敗しても続ける）

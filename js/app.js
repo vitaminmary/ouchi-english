@@ -1,4 +1,4 @@
-import { characterSVG, cupcakeSVG } from './art.js';
+import { characterHTML, cupcakeSVG } from './art.js';
 import { onTalk, unlockAudio, sfx, stopSpeaking, record, startRecording, playBlob, micPermission, loadClips } from './audio.js';
 import { playSongMelody } from './song.js';
 import { $, el, show, holdButton, makeSparkles, burst, centerOf } from './ui.js';
@@ -26,7 +26,7 @@ function renderHome() {
   const chars = $('#homeChars');
   chars.innerHTML = '';
   for (const c of data.characters) {
-    const b = el(`<button class="char-pick" aria-label="${c.name}"><div class="character idle">${characterSVG(c.id)}</div></button>`);
+    const b = el(`<button class="char-pick" aria-label="${c.name}"><div class="character idle">${characterHTML(c.id)}</div></button>`);
     b.onclick = () => startCorner(c.id, b);
     chars.appendChild(b);
   }
@@ -49,7 +49,7 @@ async function startCorner(charId, btn) {
 
   const charEl = $('#playChar');
   charEl.className = 'character';
-  charEl.innerHTML = characterSVG(charId);
+  charEl.innerHTML = characterHTML(charId);
   $('#work').innerHTML = '';
   $('#overlay').innerHTML = '';
   show('play');

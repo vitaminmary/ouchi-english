@@ -68,35 +68,30 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .hold-btn.holding .hold-ring { animation: holdfill var(--hold, 1s) linear forwards; }
 @keyframes holdfill { to { --p: 100; } }
 
-/* ---------- キャラクター ---------- */
-.character { position: relative; width: 100%; aspect-ratio: 200 / 240; }
-.character svg { width: 100%; height: 100%; overflow: visible; display: block; }
-.character .mouth-open { opacity: 0; }
-.character.talking .mouth-closed { animation: talkA .34s steps(1) infinite; }
-.character.talking .mouth-open { animation: talkB .34s steps(1) infinite; }
-@keyframes talkA { 0% { opacity: 0; } 50% { opacity: 1; } }
-@keyframes talkB { 0% { opacity: 1; } 50% { opacity: 0; } }
-.character .eyes { transform-box: fill-box; transform-origin: center; animation: blink 4.6s infinite; }
-@keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.12); } }
-.character .head { transform-box: fill-box; transform-origin: 50% 90%; }
-.character.talking .head { animation: nod .7s ease-in-out infinite; }
-@keyframes nod { 50% { transform: rotate(-3deg) translateY(-2px); } }
+/* ---------- キャラクター（イラスト画像） ---------- */
+.character { position: relative; width: 100%; aspect-ratio: 5 / 8; }
+.char-img {
+  width: 100%; height: 100%; display: block;
+  object-fit: contain; object-position: 50% 100%;
+  transform-origin: 50% 100%;
+  -webkit-user-drag: none; pointer-events: none;
+}
 
 .character.idle { animation: bob 2.6s ease-in-out infinite; }
 @keyframes bob { 50% { transform: translateY(-6%); } }
+/* 話しているあいだは、口のかわりに体を小さくはずませる */
+.character.talking .char-img { animation: talk .34s ease-in-out infinite; }
+@keyframes talk { 50% { transform: scale(1.03, .97) translateY(1%); } }
 .character.jump { animation: jump .6s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes jump { 0% { transform: translateY(0) scale(1, 1); } 30% { transform: translateY(-16%) scale(.95, 1.06); } 70% { transform: translateY(0) scale(1.06, .94); } 100% { transform: none; } }
 
-.character.dancing { animation: sway 1.32s ease-in-out infinite; }
+/* 歌のダンス: 前半は左右にゆれる、後半はぴょんぴょん */
+.character.dancing { animation: sway 1.32s ease-in-out infinite; transform-origin: 50% 100%; }
 @keyframes sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg) translateY(-4%); } }
-.character .arm { transform-box: fill-box; transform-origin: center; }
-.character.dance-stir .arm-r { animation: stirArm .66s linear infinite; }
-.character.dance-stir .arm-l { animation: stirArm .66s linear infinite reverse; }
-@keyframes stirArm { 0% { transform: translate(0, 0); } 25% { transform: translate(8px, -6px); } 50% { transform: translate(0, -12px); } 75% { transform: translate(-8px, -6px); } 100% { transform: translate(0, 0); } }
-.character.dance-hearts .arm { animation: heartsArm .66s ease-in-out infinite; }
-@keyframes heartsArm { 50% { transform: translateY(-34px) scale(1.1); } }
-.character.eating .head { animation: chomp .3s ease-in-out 5; }
-@keyframes chomp { 50% { transform: scaleY(.94) translateY(3px); } }
+.character.dance-hearts .char-img { animation: hop .66s ease-in-out infinite; }
+@keyframes hop { 50% { transform: translateY(-8%) scale(1.04); } }
+.character.eating .char-img { animation: chomp .3s ease-in-out 5; }
+@keyframes chomp { 50% { transform: scale(1.05, .94); } }
 
 /* ---------- ホーム ---------- */
 #home { display: none; }
@@ -113,7 +108,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   background: #e9ddff;
   transition: transform .2s;
 }
-.char-pick .character { width: 74%; margin-top: 4%; }
+.char-pick .character { width: auto; height: 84%; margin-top: 10%; }
 .char-pick:nth-child(2) { background: #fff0b8; }
 .char-pick:nth-child(3) { background: #c4f1ea; }
 .char-pick:nth-child(2) .character { animation-delay: .4s; }
@@ -141,7 +136,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @media (orientation: portrait) {
   .play-layout { grid-template-columns: 1fr; grid-template-rows: 30% 1fr; }
   .char-area { padding: 64px 4vw 0; }
-  .char-area .character { width: auto; height: 100%; max-width: 60vw; }
+  .char-area .character { height: auto; width: min(60vw, calc((30dvh - 70px) * .625)); }
   .home-chars { flex-wrap: wrap; }
   .char-pick { width: min(40vw, 30vh); }
 }
